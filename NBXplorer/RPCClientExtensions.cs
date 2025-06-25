@@ -231,11 +231,25 @@ namespace NBXplorer
 			bool created = false;
 			try
 			{
-				await client.CreateWalletAsync(walletName, new CreateWalletOptions()
+				if (client.Network.IsDecred)
 				{
-					LoadOnStartup = true,
-					Blank = client.Network.ChainName != ChainName.Regtest
-				});
+					if (client is DecredRPCClient decredClient)
+					{
+						Console.WriteLine("************: creating wallet async");
+						await decredClient.CreateWalletAsync(walletName, new CreateWalletOptions()
+						{
+							Port = client.Network.WalletRPCPort
+						});
+					}
+				}
+				else
+				{
+					await client.CreateWalletAsync(walletName, new CreateWalletOptions()
+					{
+						LoadOnStartup = true,
+						Blank = client.Network.ChainName != ChainName.Regtest
+					});
+				}
 				logger.LogInformation($"{network.CryptoCode}: Created RPC wallet \"{walletName}\"");
 				created = true;
 			}

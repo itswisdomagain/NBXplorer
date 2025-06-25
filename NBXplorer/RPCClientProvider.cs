@@ -16,6 +16,18 @@ namespace NBXplorer
 				if (rpc != null)
 				{
 					rpc.HttpClient = httpClientFactory.CreateClient(nameof(RPCClientProvider));
+					if (config.CryptoCode == "DCR")
+					{
+						// TODO: Correctly handle self signed certificates.
+						var handler = new HttpClientHandler();
+						handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+						handler.ServerCertificateCustomValidationCallback =
+						    (httpRequestMessage, cert, cetChain, policyErrors) =>
+						{
+						    return true;
+						};
+						rpc.HttpClient = new HttpClient(handler);
+					}
 					_ChainConfigurations.Add(config.CryptoCode, rpc);
 				}
 			}

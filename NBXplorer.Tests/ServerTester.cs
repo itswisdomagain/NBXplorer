@@ -83,19 +83,22 @@ namespace NBXplorer.Tests
 			try
 			{
 				var cryptoSettings = new NBXplorerNetworkProvider(ChainName.Regtest).GetFromCryptoCode(CryptoCode);
-				NodeBuilder = NodeBuilder.Create(nodeDownloadData, Network, _Directory);
-				NodeBuilder.RPCWalletType = RPCWalletType;
-				NodeBuilder.CreateWallet = CreateWallet;
-				if (KeepPreviousData)
-					NodeBuilder.CleanBeforeStartingNode = false;
-				Explorer = NodeBuilder.CreateNode();
-				Explorer.ConfigParameters.Add("txindex", "1");
-				foreach (var node in NodeBuilder.Nodes)
+				if (CryptoCode != "DCR")
 				{
-					node.WhiteBind = true;
-				}
-				NodeBuilder.StartAll();
+					NodeBuilder = NodeBuilder.Create(nodeDownloadData, Network, _Directory);
+					NodeBuilder.RPCWalletType = RPCWalletType;
+					NodeBuilder.CreateWallet = CreateWallet;
+					if (KeepPreviousData)
+						NodeBuilder.CleanBeforeStartingNode = false;
+					Explorer = NodeBuilder.CreateNode();
+					Explorer.ConfigParameters.Add("txindex", "1");
+					foreach (var node in NodeBuilder.Nodes)
+					{
+						node.WhiteBind = true;
+					}
+					NodeBuilder.StartAll();
 
+				}
 				datadir = Path.Combine(_Directory, "explorer");
 				if (!KeepPreviousData && !LoadedData)
 					DeleteFolderRecursive(datadir);
@@ -130,14 +133,29 @@ namespace NBXplorer.Tests
 			keyValues.Add(("instancename", Caller));
 			keyValues.Add(("chains", CryptoCode.ToLowerInvariant()));
 			keyValues.Add(("verbose", "1"));
-			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}rpcauth", Explorer.GetRPCAuth()));
-			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}rpcurl", Explorer.CreateRPCClient().Address.AbsoluteUri));
+			string rpcAuth;
+			string rpcUrl;
+			string nodeEndpoint;
+			if (CryptoCode != "DCR")
+			{
+				rpcAuth = Explorer.GetRPCAuth();
+				rpcUrl = Explorer.CreateRPCClient().Address.AbsoluteUri;
+				nodeEndpoint = $"{Explorer.Endpoint.Address}:{Explorer.Endpoint.Port}";
+			}
+			else
+			{
+				rpcAuth = "user:pass";
+				rpcUrl = "https://127.0.0.1:19561/";
+				nodeEndpoint = "127.0.0.1:19560";
+			}
+			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}rpcauth", rpcAuth));
+			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}rpcurl", rpcUrl));
 			keyValues.Add(("exposerpc", "1"));
 			keyValues.Add(("rpcnotest", "1"));
 			keyValues.Add(("trimevents", TrimEvents.ToString()));
 			keyValues.Add(("mingapsize", "3"));
 			keyValues.Add(("maxgapsize", "8"));
-			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}nodeendpoint", $"{Explorer.Endpoint.Address}:{Explorer.Endpoint.Port}"));
+			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}nodeendpoint", nodeEndpoint));
 			keyValues.Add(("asbcnstr", AzureServiceBusTestConfig.ConnectionString));
 			keyValues.Add(("asbblockq", AzureServiceBusTestConfig.NewBlockQueue));
 			keyValues.Add(("asbtranq", AzureServiceBusTestConfig.NewTransactionQueue));
@@ -190,7 +208,7 @@ namespace NBXplorer.Tests
 			dbName = dbName.ToLowerInvariant();
 			if (string.IsNullOrEmpty(connectionString))
 			{
-				connectionString = $"User ID=postgres;Host=localhost;CommandTimeout=120;Include Error Detail=true;Application Name={applicationName};Port=39383;Database={dbName}";
+				connectionString = $"User ID=postgres;Host=localhost;CommandTimeout=120;Include Error Detail=true;Application Name={applicationName};Port=5432;Database={dbName}";
 			}
 			else
 			{

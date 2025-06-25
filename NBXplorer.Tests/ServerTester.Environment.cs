@@ -92,13 +92,17 @@ namespace NBXplorer.Tests
 			//nodeDownloadData = NodeDownloadData.MonetaryUnit.v2_1_6;
 			//Network = NBitcoin.Altcoins.MonetaryUnit.Instance.Regtest;
 
+			CryptoCode = "DCR";
+			nodeDownloadData = NodeDownloadData.Decred.v2_0_6;
+			NBXplorerNetwork = _Provider.GetDCR();
+
 			//CryptoCode = "LBTC";
 			//nodeDownloadData = NodeDownloadData.Elements.v0_21_0_2;
 			//NBXplorerNetwork = _Provider.GetLBTC();
 			//
-			CryptoCode = "BTC";
-			nodeDownloadData = NodeDownloadData.Bitcoin.GetLatest();
-			NBXplorerNetwork = _Provider.GetBTC();
+			//CryptoCode = "BTC";
+			//nodeDownloadData = NodeDownloadData.Bitcoin.GetLatest();
+			//NBXplorerNetwork = _Provider.GetBTC();
 		}
 	}
 }
