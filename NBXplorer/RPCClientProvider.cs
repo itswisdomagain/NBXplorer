@@ -10,24 +10,16 @@ namespace NBXplorer
 		Dictionary<string, RPCClient> _ChainConfigurations = new Dictionary<string, RPCClient>();
 		public RPCClientProvider(ExplorerConfiguration configuration, IHttpClientFactory httpClientFactory)
 		{
-			foreach(var config in configuration.ChainConfigurations)
+			foreach (var config in configuration.ChainConfigurations)
 			{
 				var rpc = config?.RPC;
 				if (rpc != null)
 				{
-					rpc.HttpClient = httpClientFactory.CreateClient(nameof(RPCClientProvider));
-					if (config.CryptoCode == "DCR")
-					{
-						// TODO: Correctly handle self signed certificates.
-						var handler = new HttpClientHandler();
-						handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-						handler.ServerCertificateCustomValidationCallback =
-						    (httpRequestMessage, cert, cetChain, policyErrors) =>
-						{
-						    return true;
-						};
-						rpc.HttpClient = new HttpClient(handler);
-					}
+					if (rpc.TLSCertFile != null)
+						rpc.HttpClient = RPCClient.SecureHttpClient(rpc.TLSCertFile);
+					else
+						rpc.HttpClient = httpClientFactory.CreateClient(nameof(RPCClientProvider));
+
 					_ChainConfigurations.Add(config.CryptoCode, rpc);
 				}
 			}

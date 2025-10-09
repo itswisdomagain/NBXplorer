@@ -36,6 +36,7 @@ namespace NBXplorer.Configuration
 				app.Option($"--{crypto}rpcpassword", $"RPC authentication method 1: The RPC password (default: using cookie auth from default network folder)", CommandOptionType.SingleValue);
 				app.Option($"--{crypto}rpccookiefile", $"RPC authentication method 2: The RPC cookiefile (default: using cookie auth from default network folder)", CommandOptionType.SingleValue);
 				app.Option($"--{crypto}rpcauth", $"RPC authentication method 3: user:password or cookiefile=path (default: using cookie auth from default network folder)", CommandOptionType.SingleValue);
+				app.Option($"--{crypto}rpccertfile", $"The tls cert file for connecting to the RPC server, if required", CommandOptionType.SingleValue);
 				app.Option($"--{crypto}rpcurl", $"The RPC server url (default: default rpc server depended on the network)", CommandOptionType.SingleValue);
 				app.Option($"--{crypto}startheight", $"The height where starting the scan (default: where your rpc server was synched when you first started this program)", CommandOptionType.SingleValue);
 				app.Option($"--{crypto}minutxovalue", $"The minimum value of tracked UTXOs, any UTXO with value less than this is ignored. (default: 1 (satoshi))", CommandOptionType.SingleValue);
@@ -84,14 +85,14 @@ namespace NBXplorer.Configuration
 		{
 			var network = GetDefaultSettings(conf);
 			var dataDir = conf["datadir"];
-			if(dataDir == null)
+			if (dataDir == null)
 				return network.DefaultConfigurationFile;
 			var fileName = Path.GetFileName(network.DefaultConfigurationFile);
 			var chainDir = Path.GetFileName(Path.GetDirectoryName(network.DefaultConfigurationFile));
 			chainDir = Path.Combine(dataDir, chainDir);
 			try
 			{
-				if(!Directory.Exists(chainDir))
+				if (!Directory.Exists(chainDir))
 					Directory.CreateDirectory(chainDir);
 			}
 			catch { }
@@ -101,10 +102,10 @@ namespace NBXplorer.Configuration
 		public static ChainName GetNetworkType(IConfiguration conf)
 		{
 			var network = conf.GetOrDefault<string>("network", null);
-			if(network != null)
+			if (network != null)
 			{
 				var n = Network.GetNetwork(network);
-				if(n == null)
+				if (n == null)
 				{
 					throw new ConfigException($"Invalid network parameter '{network}'");
 				}
@@ -128,7 +129,7 @@ namespace NBXplorer.Configuration
 			builder.AppendLine("####All those options can be passed by through command like arguments (ie `-port=19382`)####");
 
 
-			foreach(var network in new NBXplorerNetworkProvider(networkType).GetAll())
+			foreach (var network in new NBXplorerNetworkProvider(networkType).GetAll())
 			{
 				var cryptoCode = network.CryptoCode.ToLowerInvariant();
 				builder.AppendLine("## This is the RPC Connection to your node");

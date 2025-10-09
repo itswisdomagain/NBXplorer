@@ -88,7 +88,7 @@ namespace NBXplorer
 		public static async Task<ScanTxoutSetResponse> StartScanTxoutSetExAsync(this RPCClient rpc, ScanTxoutSetParameters parameters, CancellationToken cancellationToken)
 		{
 			int delay = 100;
-			retry:
+		retry:
 			try
 			{
 				return await rpc.StartScanTxoutSetAsync(parameters, cancellationToken);
@@ -156,7 +156,7 @@ namespace NBXplorer
 		};
 
 		// This method fetch some information from getmempoolentry which may be useful for analysis, it's not critical to have it, so we don't want to fail the whole thing if it fails.
-		public static async Task<Dictionary<uint256, MempoolEntry>> FetchMempoolInfo(this RPCClient rpc,  IEnumerable<uint256> txHashes, CancellationToken cancellationToken)
+		public static async Task<Dictionary<uint256, MempoolEntry>> FetchMempoolInfo(this RPCClient rpc, IEnumerable<uint256> txHashes, CancellationToken cancellationToken)
 		{
 			var batch = rpc.PrepareBatch();
 			var tasks = new List<(uint256 Id, Task<MempoolEntry> MempoolEntry)>();
@@ -231,25 +231,11 @@ namespace NBXplorer
 			bool created = false;
 			try
 			{
-				if (client.Network.IsDecred)
+				await client.CreateWalletAsync(walletName, new CreateWalletOptions()
 				{
-					if (client is DecredRPCClient decredClient)
-					{
-						Console.WriteLine("************: creating wallet async");
-						await decredClient.CreateWalletAsync(walletName, new CreateWalletOptions()
-						{
-							Port = client.Network.WalletRPCPort
-						});
-					}
-				}
-				else
-				{
-					await client.CreateWalletAsync(walletName, new CreateWalletOptions()
-					{
-						LoadOnStartup = true,
-						Blank = client.Network.ChainName != ChainName.Regtest
-					});
-				}
+					LoadOnStartup = true,
+					Blank = client.Network.ChainName != ChainName.Regtest
+				});
 				logger.LogInformation($"{network.CryptoCode}: Created RPC wallet \"{walletName}\"");
 				created = true;
 			}
@@ -326,6 +312,7 @@ namespace NBXplorer
 			await batch.SendBatchAsync(cancellationToken);
 
 			batch = rpc.PrepareBatch();
+			if (rpc.Network.IsDecred) batch.AllowBatchFallback = true;
 			var headers = hashes.Select(async h => await batch.GetBlockHeaderAsyncEx(h, cancellationToken)).ToArray();
 			await batch.SendBatchAsync(cancellationToken);
 
@@ -442,9 +429,9 @@ namespace NBXplorer
 						catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_METHOD_NOT_FOUND) { return downloaded; }
 						catch { }
 					}
-					nextBlock:;
+				nextBlock:;
 				}
-				end:;
+			end:;
 				return downloaded;
 			}
 
@@ -453,7 +440,7 @@ namespace NBXplorer
 				return result;
 
 			int retryCount = 10;
-			retry:
+		retry:
 			var blockNotFound = txBlockIds.Where(t => !result.ContainsKey(t.TransactionId)).Select(t => t.BlockId).ToHashSet();
 			var fetchedBlocks = await FetchFromPeers(blockNotFound);
 			var newlyAvailable = txBlockIds.Where(t => !result.ContainsKey(t.TransactionId) && fetchedBlocks.Contains(t.BlockId)).ToHashSet();
@@ -471,7 +458,7 @@ namespace NBXplorer
 		static Regex RangeRegex = new Regex("\\[\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\]", RegexOptions.ECMAScript);
 		public async static Task ImportDescriptors(this RPCClient rpc, string descriptor, long from, long to, CancellationToken cancellationToken)
 		{
-			retry:
+		retry:
 			try
 			{
 				// This way of handling error is strange, but this is because
@@ -536,7 +523,7 @@ namespace NBXplorer
 		public static async Task<Dictionary<OutPoint, GetTxOutResponse>> GetTxOuts(this RPCClient rpc, IList<OutPoint> outpoints)
 		{
 			var batch = rpc.PrepareBatch();
-			var txOuts = outpoints.Select(o => batch.GetTxOutAsync(o.Hash, (int)o.N, true)).ToArray();
+			var txOuts = outpoints.Select(o => batch.GetTxOutAsync(o.Hash, (int)o.N, 0, true)).ToArray();
 			await batch.SendBatchAsync();
 			var result = new Dictionary<OutPoint, GetTxOutResponse>();
 			int i = 0;

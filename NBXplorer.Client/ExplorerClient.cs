@@ -127,7 +127,7 @@ namespace NBXplorer
 				{
 					CookieFile = cookieAuthentication.CookieFilePath
 				}
-				: new RPCCredentialString(), GetFullUri($"v1/cryptos/{_CryptoCode}/rpc"), _Network.NBitcoinNetwork);
+				: new RPCCredentialString(), GetFullUri($"v1/cryptos/{_CryptoCode}/rpc"), null, _Network.NBitcoinNetwork);
 		}
 
 		private readonly string _CryptoCode = "BTC";
@@ -340,8 +340,8 @@ namespace NBXplorer
 		}
 		public async Task<bool> IsTrackedAsync(TrackedSource trackedSource, CancellationToken cancellation = default)
 		{
-			
-			var responseMessage = await  SendAsync(HttpMethod.Get, null, $"{GetBasePath(trackedSource)}", cancellation);
+
+			var responseMessage = await SendAsync(HttpMethod.Get, null, $"{GetBasePath(trackedSource)}", cancellation);
 			switch (responseMessage.StatusCode)
 			{
 				case HttpStatusCode.OK:
@@ -604,7 +604,7 @@ namespace NBXplorer
 		{
 			return SendAsync<GroupInformation>(HttpMethod.Post, addresses, $"v1/cryptos/{cryptoCode}/groups/{groupId}/addresses", cancellationToken);
 		}
-		
+
 		public async Task ImportUTXOs(string cryptoCode, ImportUTXORequest request, CancellationToken cancellation = default)
 		{
 			if (request == null)

@@ -83,22 +83,19 @@ namespace NBXplorer.Tests
 			try
 			{
 				var cryptoSettings = new NBXplorerNetworkProvider(ChainName.Regtest).GetFromCryptoCode(CryptoCode);
-				if (CryptoCode != "DCR")
+				NodeBuilder = NodeBuilder.Create(nodeDownloadData, Network, _Directory);
+				NodeBuilder.RPCWalletType = RPCWalletType;
+				NodeBuilder.CreateWallet = CreateWallet;
+				if (KeepPreviousData)
+					NodeBuilder.CleanBeforeStartingNode = false;
+				Explorer = NodeBuilder.CreateNode();
+				Explorer.ConfigParameters.Add("txindex", "1");
+				foreach (var node in NodeBuilder.Nodes)
 				{
-					NodeBuilder = NodeBuilder.Create(nodeDownloadData, Network, _Directory);
-					NodeBuilder.RPCWalletType = RPCWalletType;
-					NodeBuilder.CreateWallet = CreateWallet;
-					if (KeepPreviousData)
-						NodeBuilder.CleanBeforeStartingNode = false;
-					Explorer = NodeBuilder.CreateNode();
-					Explorer.ConfigParameters.Add("txindex", "1");
-					foreach (var node in NodeBuilder.Nodes)
-					{
-						node.WhiteBind = true;
-					}
-					NodeBuilder.StartAll();
-
+					node.WhiteBind = true;
 				}
+				NodeBuilder.StartAll();
+
 				datadir = Path.Combine(_Directory, "explorer");
 				if (!KeepPreviousData && !LoadedData)
 					DeleteFolderRecursive(datadir);
@@ -133,29 +130,15 @@ namespace NBXplorer.Tests
 			keyValues.Add(("instancename", Caller));
 			keyValues.Add(("chains", CryptoCode.ToLowerInvariant()));
 			keyValues.Add(("verbose", "1"));
-			string rpcAuth;
-			string rpcUrl;
-			string nodeEndpoint;
-			if (CryptoCode != "DCR")
-			{
-				rpcAuth = Explorer.GetRPCAuth();
-				rpcUrl = Explorer.CreateRPCClient().Address.AbsoluteUri;
-				nodeEndpoint = $"{Explorer.Endpoint.Address}:{Explorer.Endpoint.Port}";
-			}
-			else
-			{
-				rpcAuth = "user:pass";
-				rpcUrl = "https://127.0.0.1:19561/";
-				nodeEndpoint = "127.0.0.1:19560";
-			}
-			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}rpcauth", rpcAuth));
-			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}rpcurl", rpcUrl));
+			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}rpcauth", Explorer.GetRPCAuth()));
+			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}rpcurl", Explorer.CreateRPCClient().Address.AbsoluteUri));
+			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}rpccertfile", Explorer.TLSCertFilePath));
 			keyValues.Add(("exposerpc", "1"));
 			keyValues.Add(("rpcnotest", "1"));
 			keyValues.Add(("trimevents", TrimEvents.ToString()));
 			keyValues.Add(("mingapsize", "3"));
 			keyValues.Add(("maxgapsize", "8"));
-			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}nodeendpoint", nodeEndpoint));
+			keyValues.Add(($"{CryptoCode.ToLowerInvariant()}nodeendpoint", $"{Explorer.Endpoint.Address}:{Explorer.Endpoint.Port}"));
 			keyValues.Add(("asbcnstr", AzureServiceBusTestConfig.ConnectionString));
 			keyValues.Add(("asbblockq", AzureServiceBusTestConfig.NewBlockQueue));
 			keyValues.Add(("asbtranq", AzureServiceBusTestConfig.NewTransactionQueue));

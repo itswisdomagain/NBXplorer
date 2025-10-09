@@ -17,6 +17,10 @@ namespace NBXplorer.Configuration
 		{
 			get; set;
 		}
+		public string RPCCertFile
+		{
+			get; set;
+		}
 		public string User
 		{
 			get; set;
@@ -42,37 +46,38 @@ namespace NBXplorer.Configuration
 			var network = networkInformation.NBitcoinNetwork;
 			RPCClient rpcClient = null;
 			var url = Url;
+			var cert = RPCCertFile;
 			var usr = User;
 			var pass = Password;
-			if(url != null && usr != null && pass != null)
-				rpcClient = new RPCClient(new System.Net.NetworkCredential(usr, pass), url, network);
-			if(rpcClient == null)
+			if (url != null && usr != null && pass != null)
+				rpcClient = new RPCClient(new System.Net.NetworkCredential(usr, pass), url, cert, network);
+			if (rpcClient == null)
 			{
-				if(CookieFile != null)
+				if (CookieFile != null)
 				{
 					try
 					{
-						rpcClient = new RPCClient(new RPCCredentialString() { CookieFile = CookieFile }, url, network);
+						rpcClient = new RPCClient(new RPCCredentialString() { CookieFile = CookieFile }, url, cert, network);
 					}
-					catch(IOException)
+					catch (IOException)
 					{
 						Logs.Configuration.LogWarning($"{networkInformation.CryptoCode}: RPC Cookie file not found at " + (CookieFile ?? RPCClient.GetDefaultCookieFilePath(network)));
 					}
 				}
 
-				if(AuthenticationString != null)
+				if (AuthenticationString != null)
 				{
-					rpcClient = new RPCClient(RPCCredentialString.Parse(AuthenticationString), url, network);
+					rpcClient = new RPCClient(RPCCredentialString.Parse(AuthenticationString), url, cert, network);
 				}
 
-				if(rpcClient == null)
+				if (rpcClient == null)
 				{
 					try
 					{
-						rpcClient = new RPCClient(null as NetworkCredential, url, network);
+						rpcClient = new RPCClient(null as NetworkCredential, url, cert, network);
 					}
 					catch { }
-					if(rpcClient == null)
+					if (rpcClient == null)
 					{
 						Logs.Configuration.LogError($"{networkInformation.CryptoCode}: RPC connection settings not configured");
 						throw new ConfigException();
@@ -93,7 +98,7 @@ namespace NBXplorer.Configuration
 			try
 			{
 				int time = 0;
-				retry:
+			retry:
 				try
 				{
 					blockchainInfo = await rpcClient.SendCommandAsync("getblockchaininfo", cancellation);
@@ -119,12 +124,12 @@ namespace NBXplorer.Configuration
 			{
 				throw;
 			}
-			catch(RPCException ex)
+			catch (RPCException ex)
 			{
 				logger.LogError($"Invalid response from RPC server " + ex.Message);
 				throw new ConfigException();
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				logger.LogError($"Error connecting to RPC server " + ex.Message);
 				throw new ConfigException();
@@ -157,9 +162,9 @@ namespace NBXplorer.Configuration
 		public static RPCArgs Parse(IConfiguration confArgs, Network network, string prefix = null)
 		{
 			prefix = prefix ?? "";
-			if(prefix != "")
+			if (prefix != "")
 			{
-				if(!prefix.EndsWith("."))
+				if (!prefix.EndsWith("."))
 					prefix += ".";
 			}
 			try
@@ -172,10 +177,11 @@ namespace NBXplorer.Configuration
 					DefaultWallet = confArgs.GetOrDefault<string>(prefix + "rpc.defaultwallet", null),
 					CookieFile = confArgs.GetOrDefault<string>(prefix + "rpc.cookiefile", null),
 					AuthenticationString = confArgs.GetOrDefault<string>(prefix + "rpc.auth", null),
-					Url = url == null ? null : new Uri(url)
+					Url = url == null ? null : new Uri(url),
+					RPCCertFile = confArgs.GetOrDefault<string>(prefix + "rpc.certfile", null)
 				};
 			}
-			catch(FormatException)
+			catch (FormatException)
 			{
 				throw new ConfigException("rpc.url is not an url");
 			}
