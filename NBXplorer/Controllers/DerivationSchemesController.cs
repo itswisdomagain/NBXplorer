@@ -40,8 +40,8 @@ namespace NBXplorer.Controllers
 			Indexers = indexers;
 			AddressPoolService = addressPoolService;
 		}
-		
-		
+
+
 		[HttpPost($"~/v1/{CommonRoutes.DerivationEndpoint}")]
 		[HttpPost($"~/v1/{CommonRoutes.AddressEndpoint}")]
 		public async Task<IActionResult> TrackWallet(
@@ -167,8 +167,8 @@ namespace NBXplorer.Controllers
 				}
 			}
 
-			// Step2. However, we need to remove those who are spending a UTXO from a transaction that is not pruned
-			retry:
+		// Step2. However, we need to remove those who are spending a UTXO from a transaction that is not pruned
+		retry:
 			bool removedPrunables = false;
 			if (prunableIds.Count != 0)
 			{
@@ -241,7 +241,7 @@ namespace NBXplorer.Controllers
 			{
 				mnemonic = new Mnemonic(request.WordList, request.WordCount.Value);
 			}
-			var masterKey = mnemonic.DeriveExtKey(request.Passphrase).GetWif(network.NBitcoinNetwork);
+			var masterKey = mnemonic.DeriveExtKey(network.NBitcoinNetwork, request.Passphrase).GetWif(network.NBitcoinNetwork);
 			var keyPath = GetDerivationKeyPath(request.ScriptPubKeyType.Value, request.AccountNumber, network);
 			var accountKey = masterKey.Derive(keyPath);
 			StandardDerivationStrategyBase derivation = network.DerivationStrategyFactory.CreateDirectDerivationStrategy(accountKey.Neuter(), new DerivationStrategyOptions()
@@ -312,7 +312,7 @@ namespace NBXplorer.Controllers
 			ImportRPCMode importAddressToRPC = null;
 			if (request.ImportKeysToRPC is true)
 			{
-				var rpc = Indexers.GetIndexer(network)?.GetConnectedClient();;
+				var rpc = Indexers.GetIndexer(network)?.GetConnectedClient(); ;
 				try
 				{
 					var walletInfo = await rpc.SendCommandAsync("getwalletinfo");

@@ -478,14 +478,14 @@ namespace NBXplorer.Backend
 				if (trackedSource is null)
 					continue;
 				KeyPathInformation ki = (Network.IsElement, r.blinding_key as string) switch
+				{
+					(true, { } blindingKey) => new LiquidKeyPathInformation()
 					{
-						(true, { } blindingKey) => new LiquidKeyPathInformation()
-						{
-							BlindingKey = new Key(Encoders.Hex.DecodeData(blindingKey))
-						},
-						(true, _) => new LiquidKeyPathInformation(),
-						_ => new KeyPathInformation()
-					};
+						BlindingKey = new Key(Network.NBitcoinNetwork, Encoders.Hex.DecodeData(blindingKey))
+					},
+					(true, _) => new LiquidKeyPathInformation(),
+					_ => new KeyPathInformation()
+				};
 				ki.Address = addr;
 				ki.DerivationStrategy = r.derivation is not null ? derivationStrategy : null;
 				ki.KeyPath = keypath;
@@ -633,7 +633,7 @@ namespace NBXplorer.Backend
 		}
 		async Task<(TrackedTransaction[] TrackedTransactions, SaveTransactionRecord[] Saved)> SaveMatches(DbConnectionHelper connection, MatchQuery matchQuery, IList<SaveTransactionRecord> records, CancellationToken cancellationToken = default)
 		{
-			HashSet<uint256> unconfTxs = null;;
+			HashSet<uint256> unconfTxs = null; ;
 			Dictionary<uint256, SaveTransactionRecord> txs = new();
 			HashSet<uint256> savedTxs = new();
 			List<dynamic> matchedConflicts = new List<dynamic>();
@@ -688,13 +688,13 @@ namespace NBXplorer.Backend
 					savedTxs.Add(uint256.Parse(r.tx_id));
 				}
 			}
-			end:
+		end:
 			if (savedTxs.Count is 0)
 				return (Array.Empty<TrackedTransaction>(), GetSavedTxs());
-			
+
 			var metadata = await rpc.FetchMempoolInfo(GetSavedTxs().Where(tx => tx.BlockId is null).Select(tx => tx.Id), cancellationToken);
 			await connection.SaveTransactions(GetSavedTxs(), metadata);
-			
+
 
 			if (scripts.Count is 0)
 				return (Array.Empty<TrackedTransaction>(), GetSavedTxs());
@@ -948,7 +948,7 @@ namespace NBXplorer.Backend
 		{
 			await using var helper = await connectionFactory.CreateConnectionHelper(Network);
 			var connection = helper.Connection;
-			retry:
+		retry:
 			var unused = (await GetKeyInformations(connection, GetKeyInformationsQuery.ByUnused(strategy, derivationFeature, n, Network))).FirstOrDefault().Value?.FirstOrDefault();
 			if (unused is null)
 			{

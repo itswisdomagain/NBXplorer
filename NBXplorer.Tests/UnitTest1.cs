@@ -86,7 +86,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = RepositoryTester.Create(true))
 			{
-				var dummy = new DirectDerivationStrategy(new ExtKey().Neuter().GetWif(Network.RegTest), false);
+				var dummy = new DirectDerivationStrategy(new ExtKey(Network.RegTest).Neuter().GetWif(Network.RegTest), false);
 				await RepositoryCanTrackAddressesCore(tester, dummy);
 			}
 		}
@@ -178,7 +178,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = RepositoryTester.Create(true))
 			{
-				var dummy = new DirectDerivationStrategy(new ExtKey().Neuter().GetWif(Network.RegTest), false);
+				var dummy = new DirectDerivationStrategy(new ExtKey(Network.RegTest).Neuter().GetWif(Network.RegTest), false);
 				var seria = new Serializer(tester.Repository.Network);
 				var keyInfo = new KeyPathInformation()
 				{
@@ -283,7 +283,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var userExtKey = new ExtKey();
+				var userExtKey = new ExtKey(tester.Network);
 				var userDerivationScheme = tester.Client.Network.DerivationStrategyFactory.CreateDirectDerivationStrategy(userExtKey.Neuter(), new DerivationStrategyOptions()
 				{
 					ScriptPubKeyType = ScriptPubKeyType.Legacy
@@ -319,7 +319,7 @@ namespace NBXplorer.Tests
 					TransactionBuilder builder = tester.Network.CreateTransactionBuilder();
 					builder.AddCoins(coins);
 					builder.AddKeys(keys);
-					builder.Send(new Key(), Money.Coins(0.5m));
+					builder.Send(new Key(tester.Network), Money.Coins(0.5m));
 					builder.SetChange(changeAddress.ScriptPubKey);
 
 					var fallbackFeeRate = new FeeRate(Money.Satoshis(100), 1);
@@ -350,8 +350,8 @@ namespace NBXplorer.Tests
 		public async Task CanCreatePSBTInMiniscript(string template, int depositIndex, int changeIndex)
 		{
 			using var tester = ServerTester.Create();
-			
-			var root = new ExtKey();
+
+			var root = new ExtKey(tester.Network);
 			var path = new KeyPath("86'/1'/0'");
 			var fp = root.GetPublicKey().GetHDFingerPrint();
 			var account = root.Derive(path).Neuter().GetWif(tester.Network);
@@ -432,7 +432,7 @@ namespace NBXplorer.Tests
 				var coin = newTx.Outputs.AsCoins().First(c => c.ScriptPubKey == segwit.ScriptPubKey);
 				var spending = tester.Network.CreateTransactionBuilder()
 					.AddCoins(coin)
-					.SendAll(new Key().PubKey.ScriptPubKey)
+					.SendAll(new Key(tester.Network).PubKey.ScriptPubKey)
 					.SubtractFees()
 					.SendFees(Money.Satoshis(1000))
 					.BuildTransaction(false);
@@ -451,7 +451,7 @@ namespace NBXplorer.Tests
 
 				// If we build a list of unconf transaction which is too long, the CreatePSBT should
 				// fail rather than create a transaction that can't be broadcasted.
-				var userExtKey = new ExtKey();
+				var userExtKey = new ExtKey(tester.Network);
 				var userDerivationScheme = tester.Client.Network.DerivationStrategyFactory.CreateDirectDerivationStrategy(userExtKey.Neuter(), new DerivationStrategyOptions()
 				{
 					ScriptPubKeyType = ScriptPubKeyType.Segwit
@@ -499,8 +499,8 @@ namespace NBXplorer.Tests
 		private static void CanCreatePSBTCore(ServerTester tester, int psbtVersion, ScriptPubKeyType type, bool useMiniscript = false)
 		{
 
-			var userExtKey = new ExtKey();
-			var userExtKey2 = new ExtKey();
+			var userExtKey = new ExtKey(tester.Network);
+			var userExtKey2 = new ExtKey(tester.Network);
 
 			DerivationStrategyBase userDerivationScheme = tester.Client.Network.DerivationStrategyFactory.CreateDirectDerivationStrategy(userExtKey.Neuter(), new DerivationStrategyOptions()
 			{
@@ -550,7 +550,7 @@ namespace NBXplorer.Tests
 					{
 						new CreatePSBTDestination()
 						{
-							Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+							Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 							Amount = Money.Coins(0.5m)
 						}
 					},
@@ -591,7 +591,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								Amount = Money.Coins(0.5m),
 								SubstractFees = substractFee
 							}
@@ -630,7 +630,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								SweepAll = true
 							}
 						},
@@ -650,7 +650,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								Amount = Money.Coins(0.3m),
 							}
 						},
@@ -669,7 +669,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								Amount = Money.Coins(0.3m),
 							}
 						},
@@ -688,7 +688,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								Amount = Money.Coins(0.3m),
 							}
 						},
@@ -699,7 +699,7 @@ namespace NBXplorer.Tests
 				ReserveChangeAddress = true
 			});
 			Assert.Equal(changeAddress, psbt2.ChangeAddress);
-			var dest = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network);
+			var dest = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network);
 			psbt2 = tester.Client.CreatePSBT(userDerivationScheme, new CreatePSBTRequest()
 			{
 				PSBTVersion = psbtVersion,
@@ -752,7 +752,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								Amount = Money.Coins(0.3m),
 							}
 						},
@@ -772,7 +772,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								Amount = Money.Coins(0.3m),
 							}
 						},
@@ -798,7 +798,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								Amount = Money.Coins(0.3m),
 							}
 						},
@@ -821,7 +821,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								Amount = Money.Coins(0.3m),
 							}
 						},
@@ -845,7 +845,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								SweepAll = true
 							}
 						},
@@ -866,7 +866,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								SweepAll = true
 							}
 						},
@@ -894,7 +894,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								SweepAll = true
 							}
 						},
@@ -922,7 +922,7 @@ namespace NBXplorer.Tests
 						{
 							new CreatePSBTDestination()
 							{
-								Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+								Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 								SweepAll = true
 							}
 						},
@@ -1244,7 +1244,7 @@ namespace NBXplorer.Tests
 				{
 					new CreatePSBTDestination()
 					{
-						Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+						Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 						Amount = Money.Satoshis(50_000)
 					}
 				},
@@ -1268,7 +1268,7 @@ namespace NBXplorer.Tests
 				{
 					new CreatePSBTDestination()
 					{
-						Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+						Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 						Amount = Money.Satoshis(40_000)
 					}
 				},
@@ -1301,7 +1301,7 @@ namespace NBXplorer.Tests
 			Logs.Tester.LogInformation("a: " + aId.ToString());
 			tester.Notifications.WaitForBlocks(tester.RPC.EnsureGenerate(1));
 
-			var anotherAddr = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network);
+			var anotherAddr = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network);
 			var psbt = (await tester.Client.CreatePSBTAsync(bob, new CreatePSBTRequest()
 			{
 				Destinations =
@@ -1634,7 +1634,7 @@ namespace NBXplorer.Tests
 			using (var tester = ServerTester.Create())
 			{
 				tester.Client.WaitServerStarted();
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter(), true);
 				tester.Client.Track(pubkey);
 
@@ -1729,7 +1729,7 @@ namespace NBXplorer.Tests
 			using (var tester = ServerTester.Create())
 			{
 				tester.Client.WaitServerStarted();
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter(), true);
 				tester.Client.Track(pubkey);
 
@@ -1821,7 +1821,7 @@ namespace NBXplorer.Tests
 		// 		tester.UseRabbitMQ = true;
 		// 		tester.Start();
 		// 		tester.Client.WaitServerStarted();
-		// 		var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+		// 		var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 		// 		var pubkey = tester.CreateDerivationStrategy(key.Neuter(), true);
 		// 		tester.Client.Track(pubkey);
 
@@ -1913,7 +1913,7 @@ namespace NBXplorer.Tests
 		// 		tester.UseRabbitMQ = true;
 		// 		tester.Start();
 		// 		tester.Client.WaitServerStarted();
-		// 		var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+		// 		var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 		// 		var pubkey = tester.CreateDerivationStrategy(key.Neuter(), true);
 		// 		tester.Client.Track(pubkey);
 
@@ -2010,7 +2010,7 @@ namespace NBXplorer.Tests
 			using (var tester = ServerTester.Create())
 			{
 				tester.Client.WaitServerStarted();
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter(), true);
 				await tester.Client.TrackAsync(pubkey);
 
@@ -2042,8 +2042,24 @@ namespace NBXplorer.Tests
 			// fundingTxId get pruned
 			using (var tester = ServerTester.Create())
 			{
+				var mineBlocks = () =>
+					tester.Notifications.WaitForBlocks(tester.RPC.EnsureGenerate(tester.Network.IsDecred ? 2 : 1));
+
+				var sendFromImported = (BitcoinPubKeyAddress address, Money amount) =>
+				{
+					if (tester.Network.IsDecred)
+					{
+						var resp = tester.RPC.SendCommand(RPCOperations.sendfrom, "imported", address.ToString(), amount.ToUnit(MoneyUnit.BTC));
+						return uint256.Parse(resp.Result.ToString());
+					}
+					else
+					{
+						return tester.RPC.SendToAddress(address, amount);
+					}
+				};
+
 				tester.Client.WaitServerStarted();
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter(), true);
 				await tester.Client.TrackAsync(pubkey);
 				var fundingTxId = new uint256((await tester.RPC.SendCommandAsync(RPCOperations.sendmany, "",
@@ -2060,10 +2076,10 @@ namespace NBXplorer.Tests
 				LockTestCoins(tester.RPC);
 				await tester.ImportPrivKeyAsync(key, "0/1");
 
-				var spending1 = await tester.RPC.SendToAddressAsync(new Key().PubKey.Hash.GetAddress(tester.Network), Money.Coins(0.1m));
+				var spending1 = sendFromImported(new Key(tester.Network).PubKey.Hash.GetAddress(tester.Network), Money.Coins(0.1m));
 				tester.Notifications.WaitForTransaction(pubkey, spending1);
 				Logs.Tester.LogInformation($"Spent on {spending1}");
-				tester.RPC.EnsureGenerate(1);
+				tester.RPC.EnsureGenerate(2);
 				tester.WaitSynchronized();
 				await tester.Client.PruneAsync(pubkey, PruneTheMost);
 
@@ -2077,23 +2093,26 @@ namespace NBXplorer.Tests
 				LockTestCoins(tester.RPC);
 				tester.ImportPrivKey(key, "0/0");
 				var unspentt = tester.RPC.ListUnspent();
-				var spending2 = tester.RPC.SendToAddress(new Key().PubKey.Hash.GetAddress(tester.Network), Money.Coins(0.1m));
+				var spending2 = sendFromImported(new Key(tester.Network).PubKey.Hash.GetAddress(tester.Network), Money.Coins(0.1m));
 				tester.Notifications.WaitForTransaction(pubkey, spending2);
 				Logs.Tester.LogInformation($"Spent on {spending2}");
+
+				// keep the equivalent of 6 blocks, which is equal to 1 hour on btc regtest.
+				var daysToKeep = (tester.Network.Consensus.PowTargetSpacing * 6).TotalDays;
 
 				tester.RPC.EnsureGenerate(3);
 				tester.WaitSynchronized();
 				Logs.Tester.LogInformation($"Now {spending1} and {spending2} should be pruned if we want to keep 1H of blocks");
-				tester.Client.Prune(pubkey, new PruneRequest() { DaysToKeep = 1.0 / 24.0 });
+				tester.Client.Prune(pubkey, new PruneRequest() { DaysToKeep = daysToKeep });
 				AssertNotPruned(tester, pubkey, fundingTxId);
 				AssertNotPruned(tester, pubkey, spending1);
 				AssertNotPruned(tester, pubkey, spending2);
 
-				tester.RPC.Generate(4);
+				tester.RPC.Generate(tester.Network.IsDecred ? 5 : 4);
 				tester.WaitSynchronized();
-				var totalPruned = tester.Client.Prune(pubkey, new PruneRequest() { DaysToKeep = 1.0 / 24.0 }).TotalPruned;
+				var totalPruned = tester.Client.Prune(pubkey, new PruneRequest() { DaysToKeep = daysToKeep }).TotalPruned;
 				Assert.Equal(3, totalPruned);
-				totalPruned = tester.Client.Prune(pubkey, new PruneRequest() { DaysToKeep = 1.0 / 24.0 }).TotalPruned;
+				totalPruned = tester.Client.Prune(pubkey, new PruneRequest() { DaysToKeep = daysToKeep }).TotalPruned;
 				Assert.Equal(0, totalPruned);
 				Logs.Tester.LogInformation($"But after 1H of blocks, it should be pruned");
 				utxo = await tester.Client.GetUTXOsAsync(pubkey);
@@ -2151,8 +2170,25 @@ namespace NBXplorer.Tests
 			// spending1 does not get pruned, even if its output got consumed
 			using (var tester = ServerTester.Create())
 			{
+				var mineBlocks = () =>
+					tester.Notifications.WaitForBlocks(tester.RPC.EnsureGenerate(tester.Network.IsDecred ? 2 : 1));
+
+				var sendFromImported = (Script scriptPubKey, Money amount) =>
+				{
+					if (tester.Network.IsDecred)
+					{
+						var address = scriptPubKey.GetDestinationAddress(tester.Network).ToString();
+						var resp = tester.RPC.SendCommand(RPCOperations.sendfrom, "imported", address, amount.ToUnit(MoneyUnit.BTC));
+						return uint256.Parse(resp.Result.ToString());
+					}
+					else
+					{
+						return tester.RPC.SendToAddress(scriptPubKey, amount);
+					}
+				};
+
 				tester.Client.WaitServerStarted();
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter(), true);
 				await tester.Client.TrackAsync(pubkey);
 
@@ -2161,7 +2197,7 @@ namespace NBXplorer.Tests
 				tester.RPC.SendCommand(RPCOperations.sendmany, "",
 						JObject.Parse($"{{ \"{tester.AddressOf(pubkey, "0/1")}\": \"0.9\", \"{tester.AddressOf(pubkey, "0/0")}\": \"0.5\" }}"));
 				utxo = await tester.Client.GetUTXOsAsync(pubkey);
-				tester.Notifications.WaitForBlocks(tester.RPC.EnsureGenerate(1));
+				mineBlocks();
 				utxo = await tester.Client.GetUTXOsAsync(pubkey);
 				Assert.Equal(2, utxo.Confirmed.UTXOs.Count);
 				var fundingTxId = utxo.Confirmed.UTXOs[0].Outpoint.Hash;
@@ -2173,17 +2209,24 @@ namespace NBXplorer.Tests
 				tester.ImportPrivKey(key, "0/1");
 				var coinDestination = tester.Client.GetUnused(pubkey, DerivationFeature.Deposit);
 				var coinDestinationAddress = coinDestination.ScriptPubKey;
-				var spending1 = tester.RPC.SendToAddress(coinDestinationAddress, Money.Coins(0.1m));
+				var spending1 = sendFromImported(coinDestinationAddress, Money.Coins(0.1m));
 				Logs.Tester.LogInformation($"Spent the coin to 0/1 in spending1({spending1})");
 				tester.Notifications.WaitForTransaction(pubkey, spending1);
 				LockTestCoins(tester.RPC, new HashSet<Script>());
+				if (tester.Network.IsDecred)
+				{
+					// Mine the tx that sent funds to `coinDestination`, so that
+					// when the `coinDestination` privkey is imported below, the
+					// tx will be found during blocks rescan.
+					mineBlocks();
+				}
 				tester.ImportPrivKey(key, coinDestination.KeyPath.ToString());
-				var spending2 = tester.RPC.SendToAddress(new Key().GetScriptPubKey(ScriptPubKeyType.Legacy), Money.Coins(0.01m));
+				var spending2 = sendFromImported(new Key(tester.Network).GetScriptPubKey(ScriptPubKeyType.Legacy), Money.Coins(0.01m));
 				tester.Notifications.WaitForTransaction(pubkey, spending2);
 				Logs.Tester.LogInformation($"Spent again the coin in spending2({spending2})");
 				var tx = tester.RPC.GetRawTransactionAsync(spending2).Result;
 				Assert.Contains(tx.Inputs, (i) => i.PrevOut.Hash == spending1);
-				tester.Notifications.WaitForBlocks(tester.RPC.EnsureGenerate(1));
+				mineBlocks();
 				tester.WaitSynchronized();
 
 				await tester.Client.PruneAsync(pubkey, PruneTheMost);
@@ -2198,10 +2241,10 @@ namespace NBXplorer.Tests
 				Thread.Sleep(1000);
 				LockTestCoins(tester.RPC, new HashSet<Script>());
 				tester.ImportPrivKey(key, "0/0");
-				var spending3 = tester.RPC.SendToAddress(new Key().PubKey.Hash.GetAddress(tester.Network), Money.Coins(0.1m));
+				var spending3 = sendFromImported(new Key(tester.Network).PubKey.Hash.ScriptPubKey, Money.Coins(0.1m));
 				tester.Notifications.WaitForTransaction(pubkey, spending3);
 				Logs.Tester.LogInformation($"Spent the second coin to 0/0 in spending3({spending3})");
-				tester.Notifications.WaitForBlocks(tester.RPC.EnsureGenerate(1));
+				mineBlocks();
 				tester.WaitSynchronized();
 				await tester.Client.PruneAsync(pubkey, PruneTheMost);
 
@@ -2221,7 +2264,7 @@ namespace NBXplorer.Tests
 			using (var tester = ServerTester.Create())
 			{
 				tester.Client.WaitServerStarted();
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter(), true);
 				await tester.Client.TrackAsync(pubkey);
 				using (var connected = CreateNotificationSession(tester, legacyAPI))
@@ -2270,7 +2313,7 @@ namespace NBXplorer.Tests
 			using (var tester = ServerTester.Create())
 			{
 				tester.Client.WaitServerStarted();
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter(), true);
 				await tester.Client.TrackAsync(pubkey);
 				var connected = tester.Client.CreateLongPollingNotificationSession();
@@ -2313,7 +2356,7 @@ namespace NBXplorer.Tests
 			using (var tester = ServerTester.Create())
 			{
 				tester.Client.WaitServerStarted();
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 
 				var wLegacy = await tester.Client.GenerateWalletAsync(new GenerateWalletRequest() { ScriptPubKeyType = ScriptPubKeyType.Legacy });
 				var wSegwit = await tester.Client.GenerateWalletAsync(new GenerateWalletRequest() { ScriptPubKeyType = ScriptPubKeyType.Segwit });
@@ -2427,7 +2470,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var bob = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var bob = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var bobPubKey = tester.CreateDerivationStrategy(bob.Neuter());
 				tester.Client.Track(bobPubKey);
 				var id = tester.SendToAddress(tester.AddressOf(bob, "0/1"), Money.Coins(1.0m));
@@ -2452,8 +2495,8 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var bob = new BitcoinExtKey(new ExtKey(), tester.Network);
-				var alice = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var bob = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
+				var alice = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 
 				var bobPubKey = tester.CreateDerivationStrategy(bob.Neuter());
 				var alicePubKey = tester.CreateDerivationStrategy(alice.Neuter());
@@ -2513,7 +2556,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 				await tester.Client.TrackAsync(pubkey);
 				var events = tester.Client.CreateWebsocketNotificationSessionLegacy();
@@ -2551,7 +2594,7 @@ namespace NBXplorer.Tests
 						new CreatePSBTDestination()
 						{
 							Amount = Money.Coins(5m),
-							Destination = new Key().GetAddress(ScriptPubKeyType.Legacy, tester.Network)
+							Destination = new Key(tester.Network).GetAddress(ScriptPubKeyType.Legacy, tester.Network)
 						}
 					},
 					FeePreference = new FeePreference() { ExplicitFee = Money.Satoshis(5000) }
@@ -2575,7 +2618,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 				await tester.Client.TrackAsync(pubkey);
 
@@ -2629,7 +2672,7 @@ namespace NBXplorer.Tests
 			using (var tester = ServerTester.Create())
 			{
 				tester.Client.WaitServerStarted();
-				var key = new Key();
+				var key = new Key(tester.Network);
 				var pubkey = TrackedSource.Create(key.PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network));
 				tester.Client.Track(pubkey);
 				using (var connected = CreateNotificationSession(tester, legacyAPI))
@@ -2681,10 +2724,10 @@ namespace NBXplorer.Tests
 			using (var tester = ServerTester.Create())
 			{
 				tester.Client.WaitServerStarted();
-				var key = new Key();
+				var key = new Key(tester.Network);
 				var pubkey = TrackedSource.Create(key.PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network));
 
-				var key2 = new Key();
+				var key2 = new Key(tester.Network);
 				var pubkey2 = TrackedSource.Create(key2.PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network));
 
 				await tester.Client.TrackAsync(pubkey);
@@ -2715,7 +2758,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var extkey = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var extkey = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.NBXplorerNetwork.DerivationStrategyFactory.Parse($"{extkey.Neuter()}-[legacy]");
 				Logs.Tester.LogInformation("Let's make a tracked address from hd pubkey 0/0");
 				var key = extkey.ExtKey.Derive(new KeyPath("0/0")).PrivateKey;
@@ -2774,7 +2817,7 @@ namespace NBXplorer.Tests
 				Assert.Equal(tx1, tx.ConfirmedTransactions.Transactions[0].TransactionId);
 
 				Logs.Tester.LogInformation("Trying to send to a single address from a tracked extkey");
-				var extkey2 = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var extkey2 = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey2 = (StandardDerivationStrategyBase)tester.NBXplorerNetwork.DerivationStrategyFactory.Parse($"{extkey.Neuter()}-[legacy]");
 				await tester.Client.TrackAsync(pubkey2);
 				var txId = tester.SendToAddress(pubkey2.GetDerivation(new KeyPath("0/0")).ScriptPubKey, Money.Coins(1.0m));
@@ -2806,7 +2849,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 				await tester.Client.TrackAsync(pubkey);
 				Logs.Tester.LogInformation("Let's send 1.0BTC to 0/0");
@@ -2924,14 +2967,14 @@ namespace NBXplorer.Tests
 			var p2shp2wpkh = (P2SHDerivationStrategy)factory.Parse($"{toto}-[p2sh]");
 			generated = Generate(p2shp2wpkh);
 			Assert.NotNull(generated.Redeem);
-			Assert.Equal(toto.ExtPubKey.Derive(new KeyPath("0/1")).PubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey, generated.ScriptPubKey);
+			Assert.Equal(toto.ExtPubKey.Derive(new KeyPath("0/1")).PubKey.WitHash.ScriptPubKey.Hash(network).ScriptPubKey, generated.ScriptPubKey);
 			Assert.Equal(toto.ExtPubKey.Derive(new KeyPath("0/1")).PubKey.WitHash.ScriptPubKey, generated.Redeem);
 
 			//Same thing as above, reversed attribute
 			p2shp2wpkh = (P2SHDerivationStrategy)factory.Parse($"{toto}-[p2sh]");
 			Assert.Equal($"{toto}-[p2sh]", p2shp2wpkh.ToString());
 			Assert.NotNull(generated.Redeem);
-			Assert.Equal(toto.ExtPubKey.Derive(new KeyPath("0/1")).PubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey, generated.ScriptPubKey);
+			Assert.Equal(toto.ExtPubKey.Derive(new KeyPath("0/1")).PubKey.WitHash.ScriptPubKey.Hash(network).ScriptPubKey, generated.ScriptPubKey);
 			Assert.Equal(toto.ExtPubKey.Derive(new KeyPath("0/1")).PubKey.WitHash.ScriptPubKey, generated.Redeem);
 
 			var multiSig = (P2SHDerivationStrategy)factory.Parse($"2-of-{toto}-{tata}-[legacy]");
@@ -2946,13 +2989,13 @@ namespace NBXplorer.Tests
 			Assert.Equal($"2-of-{toto}-{tata}", multiP2SH.ToString());
 			generated = Generate(multiP2SH);
 			Assert.IsType<WitScriptId>(generated.ScriptPubKey.GetDestination());
-			Assert.NotNull(PayToMultiSigTemplate.Instance.ExtractScriptPubKeyParameters(generated.Redeem));
+			Assert.NotNull(PayToMultiSigTemplate.Instance.ExtractScriptPubKeyParameters(generated.Redeem, network));
 
 			var multiP2WSHP2SH = (P2SHDerivationStrategy)factory.Parse($"2-of-{toto}-{tata}-[p2sh]");
 			Assert.Equal($"2-of-{toto}-{tata}-[p2sh]", multiP2WSHP2SH.ToString());
 			generated = Generate(multiP2WSHP2SH);
 			Assert.IsType<ScriptId>(generated.ScriptPubKey.GetDestination());
-			Assert.NotNull(PayToMultiSigTemplate.Instance.ExtractScriptPubKeyParameters(generated.Redeem));
+			Assert.NotNull(PayToMultiSigTemplate.Instance.ExtractScriptPubKeyParameters(generated.Redeem, network));
 
 			Assert.Equal(factory.Parse($"2-of-{toto}-{tata}-[keeporder]-[legacy]").ToString(), factory.Parse($"2-of-{toto}-{tata}-[legacy]-[keeporder]").ToString());
 			Assert.Equal(factory.Parse($"2-of-{toto}-{tata}-[p2sh]-[keeporder]").ToString(), factory.Parse($"2-of-{toto}-{tata}-[keeporder]-[p2sh]").ToString());
@@ -2966,7 +3009,7 @@ namespace NBXplorer.Tests
 			Assert.Equal($"{toto}-[taproot]", taproot.ToString());
 			generated = Generate(taproot);
 			Assert.IsType<TaprootPubKey>(generated.ScriptPubKey.GetDestination());
-			
+
 			var policy = (PolicyDerivationStrategy)factory.Parse($"tr(musig([aaaaaaaa]{toto}/**))");
 			Assert.IsType<PolicyDerivationStrategy>(policy);
 			// Format should be musig([aaaaaaaa]{toto}/**)
@@ -2975,7 +3018,7 @@ namespace NBXplorer.Tests
 			policy = (PolicyDerivationStrategy)factory.Parse($"tr(musig({toto}), {{ pkh([aaaaaaaa]{tata}/**), pkh([aaaaaaaa]{toto}/**) }})");
 			var err = Assert.Throws<FormatException>(() => factory.Parse($"tr(musig({toto}), {{ pkh([aaaaaaaa]{tata}/**), pkh([aaaaaaaa]{toto}/**) }})-[legacy]"));
 			Assert.Contains("The derivation scheme should not contain any option", err.Message);
-			Assert.Null(policy.GetHDScriptPubKey(new ExtKey()));
+			Assert.Null(policy.GetHDScriptPubKey(new ExtKey(network)));
 			var hd = policy.GetHDScriptPubKey(toto);
 			Assert.NotNull(hd);
 			Assert.NotNull(hd.Derive(new KeyPath("0/1")));
@@ -3024,7 +3067,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 				await tester.Client.TrackAsync(pubkey);
 
@@ -3090,7 +3133,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 				await tester.Client.TrackAsync(pubkey);
 
@@ -3104,7 +3147,7 @@ namespace NBXplorer.Tests
 				Logs.Tester.LogInformation("Send 0.2BTC from the 0/0 to a random address");
 				LockTestCoins(tester.RPC);
 				tester.ImportPrivKey(key, "0/0");
-				var spendingTx = tester.SendToAddress(new Key().PubKey.Hash.GetAddress(tester.Network), Money.Coins(0.2m));
+				var spendingTx = tester.SendToAddress(new Key(tester.Network).PubKey.Hash.GetAddress(tester.Network), Money.Coins(0.2m));
 				tester.Notifications.WaitForTransaction(pubkey, spendingTx);
 				Logs.Tester.LogInformation("Check we have empty UTXO as unconfirmed");
 				utxo = await tester.Client.GetUTXOsAsync(pubkey);
@@ -3135,7 +3178,7 @@ namespace NBXplorer.Tests
 				Assert.DoesNotContain(expectedUTXO, utxo.Unconfirmed.UTXOs.Select(o => o.Outpoint));
 				await tester.RPC.InvalidateBlockAsync(tester.RPC.GetBestBlockHash());
 				await tester.RPC.SendCommandAsync("generateblock", new object[] {
-					new Key().GetAddress(ScriptPubKeyType.Legacy, tester.Network).ToString(),
+					new Key(tester.Network).GetAddress(ScriptPubKeyType.Legacy, tester.Network).ToString(),
 					new JArray()
 				});
 				tester.Notifications.WaitForBlocks(tester.RPC.GetBestBlockHash());
@@ -3151,7 +3194,7 @@ namespace NBXplorer.Tests
 			using (var tester = ServerTester.Create())
 			{
 				tester.Client.WaitServerStarted(Timeout);
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 
 				var txId1 = tester.SendToAddress(tester.AddressOf(key, "0/0"), Money.Coins(1.0m));
@@ -3206,7 +3249,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 
 				await tester.Client.TrackAsync(pubkey, new TrackWalletRequest()
@@ -3234,7 +3277,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 
 				await tester.Client.TrackAsync(pubkey);
@@ -3360,7 +3403,7 @@ namespace NBXplorer.Tests
 				Assert.Equal(new KeyPath("0/3"), utxo.Confirmed.UTXOs[2].KeyPath);
 
 				Logs.Tester.LogInformation("Making sure we can query a transaction our wallet does not know about if txindex=1");
-				txId = tester.SendToAddress(new Key().GetScriptPubKey(ScriptPubKeyType.Legacy), Money.Coins(1.0m));
+				txId = tester.SendToAddress(new Key(tester.Network).GetScriptPubKey(ScriptPubKeyType.Legacy), Money.Coins(1.0m));
 				Assert.NotNull(tester.Client.GetTransaction(txId));
 				var blockId = tester.Explorer.Generate(1);
 				tester.Notifications.WaitForBlocks(blockId);
@@ -3412,7 +3455,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 				Logs.Tester.LogInformation("Let's check an unconf miss result get properly cached: Let's send coins to 0/1 before tracking it");
 				await tester.RPC.GenerateAsync(1);
@@ -3434,7 +3477,7 @@ namespace NBXplorer.Tests
 			{
 				//WaitServerStarted not needed, just a sanity check
 				tester.Client.WaitServerStarted(Timeout);
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 				tester.Client.Track(pubkey);
 
@@ -3520,7 +3563,7 @@ namespace NBXplorer.Tests
 		[Fact]
 		public void CanTopologicalSortRecords()
 		{
-			var key = new BitcoinExtKey(new ExtKey(), Network.RegTest);
+			var key = new BitcoinExtKey(new ExtKey(Network.RegTest), Network.RegTest);
 			var pubkey = GetNetwork(Bitcoin.Instance).DerivationStrategyFactory.Parse($"{key.Neuter().ToString()}");
 			var trackedSource = new DerivationSchemeTrackedSource(pubkey);
 
@@ -3599,12 +3642,12 @@ namespace NBXplorer.Tests
 		public void CanTopologicalSortTx()
 		{
 			var tx1 = Transaction.Create(Network.Main);
-			tx1.Outputs.Add(Money.Zero, new Key());
+			tx1.Outputs.Add(Money.Zero, new Key(Network.Main));
 			var tx2 = Transaction.Create(Network.Main);
 			tx2.Inputs.Add(new OutPoint(tx1, 0));
 			var tx3 = Transaction.Create(Network.Main);
 			tx3.Inputs.Add(new OutPoint(tx2, 0));
-			tx3.Outputs.Add(Money.Zero, new Key());
+			tx3.Outputs.Add(Money.Zero, new Key(Network.Main));
 			var arr = new[] { tx2, tx1, tx3 };
 			var expected = new[] { tx1, tx2, tx3 };
 			var actual = arr.TopologicalSort(o => o.Inputs.Select(i => i.PrevOut.Hash), o => o.GetHash()).ToArray();
@@ -3772,7 +3815,7 @@ namespace NBXplorer.Tests
 			{
 				tester.Client.WaitServerStarted();
 				var tx = tester.Network.Consensus.ConsensusFactory.CreateTransaction();
-				tx.Outputs.Add(Money.Coins(1.0m), new Key());
+				tx.Outputs.Add(Money.Coins(1.0m), new Key(tester.Network));
 				var funded = await tester.RPC.FundRawTransactionAsync(tx);
 				var signed = await tester.RPC.SignRawTransactionAsync(funded.Transaction);
 				var result = await tester.Client.BroadcastAsync(signed);
@@ -3795,8 +3838,8 @@ namespace NBXplorer.Tests
 				result = await tester.Client.BroadcastAsync(signed);
 			else
 			{
-				var val = format switch 
-				{ 
+				var val = format switch
+				{
 					1 => "{\"hex\":\"TX\"}",
 					2 => "{\"psbt\":\"PSBT\"}",
 					3 => "{\"hex\":\"PSBT\"}",
@@ -3825,7 +3868,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 				await tester.Client.TrackAsync(pubkey);
 
@@ -3849,7 +3892,7 @@ namespace NBXplorer.Tests
 				Assert.NotNull(keyInfo?.Address);
 				Assert.Null(await tester.Client.GetKeyInformationAsync(pubkey, pubkey.GetDerivation(new KeyPath("0/100")).ScriptPubKey));
 
-				key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				pubkey = tester.CreateDerivationStrategy(key.Neuter());
 				Assert.Null(await tester.Client.GetKeyInformationAsync(pubkey, pubkey.GetDerivation(new KeyPath("0/0")).ScriptPubKey));
 
@@ -3929,7 +3972,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 				await tester.Client.TrackAsync(pubkey);
 
@@ -3965,7 +4008,7 @@ namespace NBXplorer.Tests
 		{
 			using (var tester = ServerTester.Create())
 			{
-				var key = new BitcoinExtKey(new ExtKey(), tester.Network);
+				var key = new BitcoinExtKey(new ExtKey(tester.Network), tester.Network);
 				var pubkey = tester.CreateDerivationStrategy(key.Neuter());
 				tester.Client.Track(pubkey);
 				var utxo = tester.Client.GetUTXOs(pubkey); //Track things do not wait
@@ -4105,7 +4148,7 @@ namespace NBXplorer.Tests
 				Assert.NotNull(savedTx);
 				Assert.NotNull(savedTx.Transaction);
 
-				var someAddr = new Key().GetScriptPubKey(ScriptPubKeyType.Legacy);
+				var someAddr = new Key(tester.Network).GetScriptPubKey(ScriptPubKeyType.Legacy);
 				// It should be possible to complete the PSBT, as we fetch from the node
 				var psbt = await tester.Client.CreatePSBTAsync(pubkey, new()
 				{
@@ -4163,7 +4206,7 @@ namespace NBXplorer.Tests
 		public void CanUseDerivationAdditionalOptions()
 		{
 			var network = GetNetwork(NBitcoin.Altcoins.AltNetworkSets.Liquid);
-			var x = new ExtKey().Neuter().GetWif(network.NBitcoinNetwork);
+			var x = new ExtKey(network.NBitcoinNetwork).Neuter().GetWif(network.NBitcoinNetwork);
 			var plainXpub = network.DerivationStrategyFactory.Parse($"{x}");
 			network.DerivationStrategyFactory.Parse($"{x}-[unblinded]");
 			Assert.Throws<FormatException>(() => network.DerivationStrategyFactory.Parse($"{x}-[test]"));
@@ -4274,7 +4317,7 @@ namespace NBXplorer.Tests
 
 					//test: receive a tx to deriv scheme but to a confidential address with a different blinding key than our derivation method 
 					evtTask = session.NextEventAsync(Timeout);
-					txid = await cashCow.SendToAddressAsync(new BitcoinBlindedAddress(new Key().PubKey, address.UnblindedAddress), Money.Coins(2.0m));
+					txid = await cashCow.SendToAddressAsync(new BitcoinBlindedAddress(new Key(tester.Network).PubKey, address.UnblindedAddress), Money.Coins(2.0m));
 					evt = Assert.IsType<NewTransactionEvent>(await evtTask);
 					var unblindabletx = (Assert.IsAssignableFrom<ElementsTransaction>(Assert.IsType<NewTransactionEvent>(evt)
 						.TransactionData.Transaction));
@@ -4402,7 +4445,7 @@ namespace NBXplorer.Tests
 				Assert.NotNull(wallet.Mnemonic);
 				Assert.NotNull(wallet.Passphrase);
 				Assert.NotNull(wallet.WordList);
-				var rootKey = wallet.GetMnemonic().DeriveExtKey(wallet.Passphrase);
+				var rootKey = wallet.GetMnemonic().DeriveExtKey(tester.Network, wallet.Passphrase);
 				Assert.Equal(new RootedKeyPath(rootKey.GetPublicKey().GetHDFingerPrint(), new KeyPath("84'/1'/0'")), wallet.AccountKeyPath);
 				Assert.Equal(WordCount.Twelve, wallet.WordCount);
 				Assert.Equal(rootKey.Derive(wallet.AccountKeyPath).Neuter().GetWif(tester.Network).ToString(),
@@ -4458,7 +4501,7 @@ namespace NBXplorer.Tests
 				Assert.Equal(new RootedKeyPath(wallet.MasterHDKey.GetPublicKey().GetHDFingerPrint(), new KeyPath("49'/1'/2'")), wallet.AccountKeyPath);
 				Assert.Equal(Wordlist.French.ToString(), wallet.WordList.ToString());
 				Assert.Equal(WordCount.Fifteen, wallet.WordCount);
-				var masterKey = new Mnemonic(wallet.Mnemonic.ToString(), wallet.WordList).DeriveExtKey(wallet.Passphrase);
+				var masterKey = new Mnemonic(wallet.Mnemonic.ToString(), wallet.WordList).DeriveExtKey(tester.Network, wallet.Passphrase);
 				Assert.Equal(masterKey.GetPublicKey().GetHDFingerPrint(), wallet.AccountKeyPath.MasterFingerprint);
 				Assert.Equal(masterKey.GetWif(tester.Network), wallet.MasterHDKey);
 				Assert.Equal(masterKey.Derive(wallet.AccountKeyPath).Neuter().GetWif(tester.Network).ToString() + "-[p2sh]",
@@ -4504,7 +4547,7 @@ namespace NBXplorer.Tests
 						new CreatePSBTDestination()
 						{
 							Amount = Money.Coins(1.0m),
-							Destination = new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
+							Destination = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Legacy, tester.Network),
 							SubstractFees = true,
 							SweepAll = true
 						}
@@ -4608,12 +4651,12 @@ namespace NBXplorer.Tests
 		{
 			using var tester = ServerTester.Create();
 			var xpub = new DerivationSchemeTrackedSource(new DirectDerivationStrategy(
-				new BitcoinExtPubKey(new Mnemonic(Wordlist.English).DeriveExtKey().Neuter(), tester.Network), true));
+				new BitcoinExtPubKey(new Mnemonic(Wordlist.English).DeriveExtKey(tester.Network).Neuter(), tester.Network), true));
 			Assert.False(await tester.Client.IsTrackedAsync(xpub, Cancel));
 			await tester.Client.TrackAsync(xpub, new TrackWalletRequest(), Cancel);
 			Assert.True(await tester.Client.IsTrackedAsync(xpub, Cancel));
 
-			var address = new AddressTrackedSource(new Key().GetAddress(ScriptPubKeyType.Legacy, tester.Network));
+			var address = new AddressTrackedSource(new Key(tester.Network).GetAddress(ScriptPubKeyType.Legacy, tester.Network));
 			Assert.False(await tester.Client.IsTrackedAsync(address, Cancel));
 			await tester.Client.TrackAsync(address, new TrackWalletRequest(), Cancel);
 			Assert.True(await tester.Client.IsTrackedAsync(address, Cancel));
@@ -4632,11 +4675,11 @@ namespace NBXplorer.Tests
 			var wallet1 = await tester.Client.CreateGroupAsync();
 			var wallet1TS = new GroupTrackedSource(wallet1.GroupId);
 
-			var k = new Key();
+			var k = new Key(tester.Network);
 			var kAddress = k.GetAddress(ScriptPubKeyType.Segwit, tester.Network);
 
 			// We use this one because it allows us to use WaitForTransaction later
-			var legacy = new AddressTrackedSource(new Key().GetAddress(ScriptPubKeyType.Legacy, tester.Network));
+			var legacy = new AddressTrackedSource(new Key(tester.Network).GetAddress(ScriptPubKeyType.Legacy, tester.Network));
 			await tester.Client.TrackAsync(legacy);
 
 			var kScript = kAddress.ScriptPubKey;
@@ -4686,14 +4729,14 @@ namespace NBXplorer.Tests
 			Assert.NotEqual(NBitcoin.Utils.UnixTimeToDateTime(0), utxoInfo.Timestamp);
 
 			//test2: try adding in fake utxos or spent ones
-			var fakescript = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, tester.Network).ScriptPubKey;
+			var fakescript = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Segwit, tester.Network).ScriptPubKey;
 			var fakeUtxo = new Coin(new OutPoint(uint256.One, 1), new TxOut(Money.Coins(1.0m), fakescript));
-			var kToSpend = new Key();
+			var kToSpend = new Key(tester.Network);
 			var kToSpendAddress = kToSpend.GetAddress(ScriptPubKeyType.Segwit, tester.Network);
 			var tospendtx = await tester.RPC.SendToAddressAsync(kToSpendAddress, Money.Coins(1.0m));
 			var tospendrawtx = await tester.RPC.GetRawTransactionAsync(tospendtx);
 			var tospendutxo = tospendrawtx.Outputs.AsIndexedOutputs().First(o => o.TxOut.ScriptPubKey == kToSpendAddress.ScriptPubKey);
-			var validScript = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, tester.Network).ScriptPubKey;
+			var validScript = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Segwit, tester.Network).ScriptPubKey;
 			var spendingtx = tester.Network.CreateTransactionBuilder()
 				.AddKeys(kToSpend)
 				.AddCoins(new Coin(tospendutxo))
@@ -4717,7 +4760,7 @@ namespace NBXplorer.Tests
 			Assert.Empty(utxos.Unconfirmed.UTXOs);
 
 			// let's test add an utxo after it has been mined
-			var yoScript = new Key().PubKey.GetAddress(ScriptPubKeyType.Segwit, tester.Network);
+			var yoScript = new Key(tester.Network).PubKey.GetAddress(ScriptPubKeyType.Segwit, tester.Network);
 			var yoTxId = await tester.SendToAddressAsync(yoScript, Money.Coins(1.0m));
 			var yoTx = await tester.RPC.GetRawTransactionAsync(yoTxId);
 			var yoUtxo = yoTx.Outputs.AsIndexedOutputs().First(o => o.TxOut.ScriptPubKey == yoScript.ScriptPubKey);

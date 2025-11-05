@@ -429,10 +429,14 @@ namespace NBXplorer.Tests
 		}
 		public StandardDerivationStrategyBase CreateDerivationStrategy(ExtPubKey pubKey, bool p2sh)
 		{
-			key = key ?? new ExtKey();
+			key = key ?? new ExtKey(this.Network);
 			pubKey = pubKey ?? key.Neuter();
-			string suffix = this.RPC.Capabilities.SupportSegwit ? "" : "-[legacy]";
-			suffix += p2sh ? "-[p2sh]" : "";
+			string suffix = "";
+			// Either 'legacy' or 'p2sh';  'legacy' is incompatible with 'p2sh'.
+			if (!this.RPC.Capabilities.SupportSegwit)
+				suffix = "-[legacy]";
+			else if (p2sh)
+				suffix = "-[p2sh]";
 			scriptPubKeyType = p2sh ? ScriptPubKeyType.SegwitP2SH : ScriptPubKeyType.Segwit;
 			return (StandardDerivationStrategyBase)NBXplorerNetwork.DerivationStrategyFactory.Parse($"{pubKey.ToString(this.Network)}{suffix}");
 		}

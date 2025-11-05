@@ -41,17 +41,17 @@ namespace NBXplorer
 				return BlindIfNeeded(derivationStrategy, addr, keyPath);
 			}
 
-			public static Key GenerateSlip77BlindingKeyFromMnemonic(Mnemonic mnemonic, Script script)
+			public static Key GenerateSlip77BlindingKeyFromMnemonic(Mnemonic mnemonic, Script script, Network network)
 			{
 				var seed = mnemonic.DeriveSeed();
 				var slip21 = Slip21Node.FromSeed(seed);
 				var slip77 = slip21.GetSlip77Node();
-				return slip77.DeriveSlip77BlindingKey(script);
+				return slip77.DeriveSlip77BlindingKey(script, network);
 			}
 
 			public static Key GenerateSlip77BlindingKeyFromMasterBlindingKey(Key masterBlindingKey, Script script)
 			{
-				return new Key(Hashes.HMACSHA256(masterBlindingKey.ToBytes(), script.ToBytes()));
+				return new Key(masterBlindingKey.Hasher, Hashes.HMACSHA256(masterBlindingKey.ToBytes(), script.ToBytes()));
 			}
 
 			public static Key GenerateBlindingKey(DerivationStrategyBase derivationStrategy, KeyPath keyPath, Script scriptPubKey, Network network)
@@ -65,7 +65,7 @@ namespace NBXplorer
 				{
 					if (HexEncoder.IsWellFormed(key))
 					{
-						return GenerateSlip77BlindingKeyFromMasterBlindingKey(new Key(Encoders.Hex.DecodeData(key)), scriptPubKey);
+						return GenerateSlip77BlindingKeyFromMasterBlindingKey(new Key(network, Encoders.Hex.DecodeData(key)), scriptPubKey);
 					}
 					try
 					{
@@ -78,7 +78,7 @@ namespace NBXplorer
 					try
 					{
 						var data = new Mnemonic(key);
-						return GenerateSlip77BlindingKeyFromMnemonic(data, scriptPubKey);
+						return GenerateSlip77BlindingKeyFromMnemonic(data, scriptPubKey, network);
 					}
 					catch (Exception)
 					{
@@ -89,7 +89,7 @@ namespace NBXplorer
 				}
 				else if (derivationStrategy is StandardDerivationStrategyBase kpd && keyPath is not null)
 				{
-					var blindingKey = new Key(kpd.GetDerivation(keyPath.Derive(new KeyPath(0))).ScriptPubKey.WitHash.ToBytes());
+					var blindingKey = new Key(network, kpd.GetDerivation(keyPath.Derive(new KeyPath(0))).ScriptPubKey.WitHash.ToBytes());
 					return blindingKey;
 				}
 				throw new InvalidOperationException("-[blinded] doesn't work on miniscript derivation strategies, use [slip77=key] instead");
@@ -109,14 +109,14 @@ namespace NBXplorer
 			return GetFromCryptoCode(NBitcoin.Altcoins.Liquid.Instance.CryptoCode);
 		}
 	}
-	
+
 	public static class LiquidDerivationStrategyOptionsExtensions
 	{
 		public static bool Unblinded(this DerivationStrategyBase derivationStrategyBase)
 		{
 			return derivationStrategyBase.AdditionalOptions.TryGetValue("unblinded", out _);
 		}
-		public static bool Slip77(this DerivationStrategyBase derivationStrategyBase ,out string key)
+		public static bool Slip77(this DerivationStrategyBase derivationStrategyBase, out string key)
 		{
 			return derivationStrategyBase.AdditionalOptions.TryGetValue("slip77", out key);
 		}

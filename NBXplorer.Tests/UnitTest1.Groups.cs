@@ -48,7 +48,7 @@ namespace NBXplorer.Tests
 			Assert.Equal(2, g1.Children.Length);
 
 			// Adding address in g2 should add the addresse to g1 but not g3
-			var addresses = Enumerable.Range(0,10).Select(_ => new Key().GetAddress(ScriptPubKeyType.Legacy, tester.Network).ToString()).ToArray();
+			var addresses = Enumerable.Range(0, 10).Select(_ => new Key(tester.Network).GetAddress(ScriptPubKeyType.Legacy, tester.Network).ToString()).ToArray();
 			await tester.Client.AddGroupAddressAsync("BTC", g2.GroupId, addresses);
 			// Idempotent
 			await tester.Client.AddGroupAddressAsync("BTC", g2.GroupId, addresses);
@@ -73,8 +73,8 @@ namespace NBXplorer.Tests
 			var g1Addrs = await GetGroupAddressesAsync(tester, "BTC", g1.GroupId);
 			Assert.Empty(g1Addrs);
 
-			await AssertNBXplorerException(400, tester.Client.AddGroupChildrenAsync(g2.GroupId, [new GroupChild() { TrackedSource= "DERIVATIONSCHEME:tpubDC45vUDsFAAqwYKz5hSLi5yJLNduJzpmTw6QTMRPrwdXURoyL81H8oZAaL8EiwEgg92qgMa9h1bB4Y1BZpy9CTNPfjfxvFcWxeiKBHCqSdc" }]));
-			await AssertNBXplorerException(400, tester.Client.AddGroupChildrenAsync(g2.GroupId, [new GroupChild() { CryptoCode="BTC", TrackedSource = "DERIVATIONSCHEME:lol" }]));
+			await AssertNBXplorerException(400, tester.Client.AddGroupChildrenAsync(g2.GroupId, [new GroupChild() { TrackedSource = "DERIVATIONSCHEME:tpubDC45vUDsFAAqwYKz5hSLi5yJLNduJzpmTw6QTMRPrwdXURoyL81H8oZAaL8EiwEgg92qgMa9h1bB4Y1BZpy9CTNPfjfxvFcWxeiKBHCqSdc" }]));
+			await AssertNBXplorerException(400, tester.Client.AddGroupChildrenAsync(g2.GroupId, [new GroupChild() { CryptoCode = "BTC", TrackedSource = "DERIVATIONSCHEME:lol" }]));
 		}
 
 		private async Task<string[]> GetGroupAddressesAsync(ServerTester tester, string code, string groupId)

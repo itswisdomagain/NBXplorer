@@ -244,23 +244,24 @@ namespace NBXplorer.Analytics
 
 		private static Fingerprint GetTxInType(TxIn txin)
 		{
+			var hasher = txin.GetConsensusFactory();
 			if (txin.WitScript.PushCount == 0)
 			{
 				if (PayToPubkeyHashTemplate.Instance.CheckScriptSig(txin.ScriptSig, null))
 					return Fingerprint.SpendFromP2PKH;
-				if (PayToScriptHashTemplate.Instance.CheckScriptSig(txin.ScriptSig, null))
+				if (PayToScriptHashTemplate.Instance.CheckScriptSig(hasher, txin.ScriptSig, null))
 					return Fingerprint.SpendFromP2SHLegacy;
 			}
 			else if (txin.ScriptSig.Length == 0)
 			{
-				if (PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(txin.WitScript) is { })
+				if (PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(txin.WitScript, hasher) is { })
 					return Fingerprint.SpendFromP2WPKH;
 				if (PayToWitScriptHashTemplate.Instance.ExtractWitScriptParameters(txin.WitScript, null) is { })
 					return Fingerprint.SpendFromP2WSH;
 			}
-			else if (PayToScriptHashTemplate.Instance.CheckScriptSig(txin.ScriptSig, null))
+			else if (PayToScriptHashTemplate.Instance.CheckScriptSig(hasher, txin.ScriptSig, null))
 			{
-				if (PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(txin.WitScript) is { })
+				if (PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(txin.WitScript, hasher) is { })
 					return Fingerprint.SpendFromP2SHP2WPKH;
 				if (PayToWitScriptHashTemplate.Instance.ExtractWitScriptParameters(txin.WitScript) is { })
 					return Fingerprint.SpendFromP2SHP2WSH;

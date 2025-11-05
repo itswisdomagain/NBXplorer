@@ -74,9 +74,9 @@ namespace NBXplorer.DerivationStrategy
 			foreach (Match optionMatch in _OptionRegex.Matches(str))
 			{
 				var rawKey = optionMatch.Groups[1].Value.ToLowerInvariant();
-				var splitKey = rawKey.Split(new[]{'='}, StringSplitOptions.RemoveEmptyEntries);
+				var splitKey = rawKey.Split(new[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
 				var key = splitKey[0];
-				var value = splitKey.Length > 1 ? splitKey[1]: null;
+				var value = splitKey.Length > 1 ? splitKey[1] : null;
 				if (!AuthorizedOptions.Contains(key))
 					throw new FormatException($"The option '{key}' is not supported by this network");
 				if (!Extensions.TryAdd(optionsDictionary, key, value))
@@ -147,14 +147,14 @@ namespace NBXplorer.DerivationStrategy
 									.ToArray();
 				return CreateMultiSigDerivationStrategy(pubKeys, sigCount, options);
 			}
-			#if !NO_RECORD
+#if !NO_RECORD
 			else if (PolicyDerivationStrategy._MaybeMiniscript.IsMatch(str))
 			{
 				if (hasOptions)
 					throw new FormatException("The derivation scheme should not contain any option (such as -[legacy])");
 				return PolicyDerivationStrategy.Parse(str, _Network);
 			}
-			#endif
+#endif
 			else
 			{
 				var key = _Network.Parse<BitcoinExtPubKey>(str);
@@ -193,7 +193,7 @@ namespace NBXplorer.DerivationStrategy
 
 				if (options.ScriptPubKeyType == ScriptPubKeyType.SegwitP2SH)
 				{
-					strategy = new P2SHDerivationStrategy(strategy, true);
+					strategy = new P2SHDerivationStrategy(strategy, true, _Network);
 				}
 			}
 			else
@@ -239,14 +239,14 @@ namespace NBXplorer.DerivationStrategy
 			options = options ?? new DerivationStrategyOptions();
 			StandardDerivationStrategyBase derivationStrategy = new MultisigDerivationStrategy(sigCount, pubKeys.ToArray(), options.ScriptPubKeyType == ScriptPubKeyType.Legacy, !options.KeepOrder, options.AdditionalOptions);
 			if (options.ScriptPubKeyType == ScriptPubKeyType.Legacy)
-				return new P2SHDerivationStrategy(derivationStrategy, false);
+				return new P2SHDerivationStrategy(derivationStrategy, false, _Network);
 
 			if (!_Network.Consensus.SupportSegwit)
 				throw new InvalidOperationException("This crypto currency does not support segwit");
 			derivationStrategy = new P2WSHDerivationStrategy(derivationStrategy);
 			if (options.ScriptPubKeyType == ScriptPubKeyType.SegwitP2SH)
 			{
-				derivationStrategy = new P2SHDerivationStrategy(derivationStrategy, true);
+				derivationStrategy = new P2SHDerivationStrategy(derivationStrategy, true, _Network);
 			}
 			return derivationStrategy;
 		}
